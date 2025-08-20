@@ -19,18 +19,8 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    // Prepare the payload for Studio Flow
-    const studioPayload = {
-      ticketId: ticketId,
-      title: title,
-      description: description,
-      customerName: customerName,
-      customerPhone: customerPhone,
-      origin: origin || 'Unknown', // Which account submitted (NSS, HHOVV, etc)
-      channel: 'support-ticket',
-      priority: determinePriority(title, description),
-      timestamp: new Date().toISOString()
-    };
+    // Determine priority based on content
+    const priority = determinePriority(title, description);
     
     // Call TaskRouter API directly (more reliable than Studio Flow)
     const taskRouterUrl = `https://taskrouter.twilio.com/v1/Workspaces/WSfe43abb4378f0f1e2ebb98877c03bd1d/Tasks`;
