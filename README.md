@@ -74,19 +74,17 @@ When deploying to Vercel, you need to set up PostgreSQL:
    - **IMPORTANT**: Change Environment Variables Prefix from `STORAGE` to `POSTGRES`
    - Click "Create & Connect"
 
-2. **Environment Variables**
+2. **Fix Environment Variables**
    
-   Vercel automatically provides these when you connect the database:
-   ```
-   POSTGRES_URL
-   POSTGRES_PRISMA_URL
-   POSTGRES_URL_NO_SSL
-   POSTGRES_URL_NON_POOLING
-   POSTGRES_USER
-   POSTGRES_HOST
-   POSTGRES_PASSWORD
-   POSTGRES_DATABASE
-   ```
+   After connecting, you need to manually add the correct variable:
+   - Go to Project Settings > Environment Variables
+   - Click "Add New"
+   - Key: `POSTGRES_URL`
+   - Value: Copy the value from `POSTGRES_POSTGRES_URL` 
+   - Environment: All Environments
+   - Save and redeploy
+
+   **Note**: The `@vercel/postgres` package expects `POSTGRES_URL`, but Neon creates `POSTGRES_POSTGRES_URL` with the prefix.
 
 3. **Deploy**
    ```bash
