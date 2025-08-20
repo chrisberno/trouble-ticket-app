@@ -37,7 +37,7 @@ export const getTicketsByCustomer = (name?: string, phone?: string): Ticket[] =>
   if (!name && !phone) return getAllTickets();
   
   let query = 'SELECT * FROM tickets WHERE 1=1';
-  const params: any = {};
+  const params: Record<string, string> = {};
   
   if (name) {
     query += ' AND customerName LIKE @name';

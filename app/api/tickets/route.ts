@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllTickets, getTicketsByCustomer, createTicket } from '@/lib/db';
+import { getTicketsByCustomer, createTicket } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {

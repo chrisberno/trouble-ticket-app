@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 
 type Ticket = {
@@ -24,7 +24,7 @@ export default function Home() {
   const [customerPhone, setCustomerPhone] = useState(searchParams.get("phone") || "");
 
   // Fetch tickets from API
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     try {
       const phone = searchParams.get("phone");
       const name = searchParams.get("name");
@@ -45,11 +45,11 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
 
   useEffect(() => {
     fetchTickets();
-  }, [searchParams]);
+  }, [searchParams, fetchTickets]);
 
   const createTicket = async () => {
     if (!title || !description || !customerName || !customerPhone) return;
