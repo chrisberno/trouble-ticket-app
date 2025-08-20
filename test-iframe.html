@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticketing System - Iframe Test</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #F1F3F9;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .flex-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .twilio-badge {
+            background: #F22F46;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .url-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #8891AA;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        iframe {
+            width: 100%;
+            height: 700px;
+            border: none;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #0263E0;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: 500;
+        }
+        button:hover {
+            background: #0251BD;
+        }
+        .test-scenarios {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        .scenario-btn {
+            background: #F4F4F6;
+            color: #121C2D;
+            border: 1px solid #CACDD8;
+        }
+        .scenario-btn:hover {
+            background: #E1E3EA;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .status.success {
+            background: #D5F2E4;
+            color: #14834F;
+            border: 1px solid #14834F;
+        }
+        .status.error {
+            background: #FEE;
+            color: #D61F1F;
+            border: 1px solid #D61F1F;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="flex-header">
+                <h1>🎫 Ticketing System - CRM Container Test</h1>
+                <span class="twilio-badge">Simulated Flex Environment</span>
+            </div>
+            <p>Testing iframe embedding with CSP headers for trouble-ticket-app.vercel.app</p>
+        </div>
+        
+        <div class="controls">
+            <h3>Test URL Configuration</h3>
+            <input 
+                type="text" 
+                id="iframeUrl" 
+                class="url-input" 
+                value="https://trouble-ticket-app.vercel.app/"
+                placeholder="Enter URL to test"
+            />
+            
+            <div class="test-scenarios">
+                <button class="scenario-btn" onclick="loadUrl('https://trouble-ticket-app.vercel.app/')">
+                    No Parameters
+                </button>
+                <button class="scenario-btn" onclick="loadUrl('https://trouble-ticket-app.vercel.app/?name=John+Doe&phone=5551234567')">
+                    With Customer Data
+                </button>
+                <button class="scenario-btn" onclick="loadUrl('https://trouble-ticket-app.vercel.app/?name=Jane+Smith&phone=7025551234')">
+                    NSS Customer
+                </button>
+                <button class="scenario-btn" onclick="loadUrl('https://trouble-ticket-app.vercel.app/?name=Test+User&phone=5559876543&email=test@example.com')">
+                    Full Parameters
+                </button>
+            </div>
+            
+            <button onclick="loadCustomUrl()">Load Custom URL</button>
+            <button onclick="checkHeaders()">Check CSP Headers</button>
+            
+            <div id="status"></div>
+        </div>
+        
+        <iframe 
+            id="crmContainer" 
+            src="https://trouble-ticket-app.vercel.app/"
+            title="Ticketing System">
+        </iframe>
+    </div>
+
+    <script>
+        const iframe = document.getElementById('crmContainer');
+        const urlInput = document.getElementById('iframeUrl');
+        const status = document.getElementById('status');
+        
+        function loadUrl(url) {
+            urlInput.value = url;
+            iframe.src = url;
+            showStatus(`Loading: ${url}`, 'success');
+        }
+        
+        function loadCustomUrl() {
+            const url = urlInput.value;
+            iframe.src = url;
+            showStatus(`Loading custom URL: ${url}`, 'success');
+        }
+        
+        function showStatus(message, type = 'success') {
+            status.className = `status ${type}`;
+            status.textContent = message;
+        }
+        
+        async function checkHeaders() {
+            try {
+                const response = await fetch('https://trouble-ticket-app.vercel.app/', {
+                    method: 'HEAD'
+                });
+                
+                const csp = response.headers.get('content-security-policy');
+                const xFrame = response.headers.get('x-frame-options');
+                
+                if (csp && csp.includes('frame-ancestors')) {
+                    showStatus(`✅ CSP Headers configured correctly! X-Frame-Options: ${xFrame || 'not set'}`, 'success');
+                } else {
+                    showStatus('⚠️ CSP headers might not be configured', 'error');
+                }
+            } catch (error) {
+                showStatus(`Error checking headers: ${error.message}`, 'error');
+            }
+        }
+        
+        // Check if iframe loaded successfully
+        iframe.onload = () => {
+            showStatus('✅ Iframe loaded successfully!', 'success');
+        };
+        
+        iframe.onerror = () => {
+            showStatus('❌ Failed to load iframe - check CSP headers', 'error');
+        };
+        
+        // Initial status
+        showStatus('Loading ticketing system...', 'success');
+    </script>
+</body>
+</html>

@@ -73,8 +73,58 @@
 
 ---
 
+---
+
+## 3. End-Users > Get Help Section (NEW CATEGORY)
+
+### Support Flow Overview
+```mermaid
+graph TD
+    A[Staff Member Needs Help] --> B{During Business Hours?}
+    B -->|Yes 9AM-5PM PST| C[💬 Live Chat Available]
+    B -->|No or Prefer Async| D[🎫 Submit Support Ticket]
+    
+    C --> E[Connect with Support Agent]
+    E --> F[Real-time Problem Resolution]
+    
+    D --> G[Fill Ticket Form with Details]
+    G --> H[Ticket Created with Tracking ID]
+    H --> I[Connie Support Team Notified]
+    I --> J[Support Agent Responds]
+    J --> K[Ticket Resolved & Closed]
+    
+    style C fill:#e1f5fe
+    style D fill:#f3e5f5
+    style F fill:#e8f5e8
+    style K fill:#e8f5e8
+```
+
+### Support Options Detail
+
+#### Live Chat (Business Hours)
+- **Availability**: 9 AM - 5 PM PST, Monday-Friday
+- **Best For**: Urgent issues, quick questions, training help
+- **Response Time**: Immediate (under 2 minutes)
+- **Features**: Screen sharing, real-time troubleshooting
+
+#### Support Tickets (24/7)
+- **Availability**: Always available
+- **Best For**: Detailed issues, after-hours support, feature requests
+- **Response Time**: Within 24 hours (typically much faster)
+- **Features**: File attachments, progress tracking, searchable history
+
+### Account Context Integration
+**Multi-Account Support**: NSS, HHOVV, DevSandBox staff all get help via same system
+- Tickets automatically include account information
+- Support team sees which organization needs help
+- All tickets route to central Connie support team (RTC+Flex)
+
+---
+
 ## Notes for CDO:
 - Emphasize the CSP header location decision (edge vs build vs runtime)
 - Include the POSTGRES_URL naming issue as a common pitfall
 - Reference the HHOVV breakthrough as the proven pattern
 - Add troubleshooting section for iframe embedding issues
+- Include the mermaid diagram exactly as shown above
+- Explain why email support was removed (tracking, efficiency)

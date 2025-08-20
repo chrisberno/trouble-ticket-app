@@ -35,6 +35,37 @@ export async function POST(request: NextRequest) {
       status: 'Open'
     });
     
+    // Trigger TaskRouter webhook (fire and forget - don't wait for response)
+    try {
+      // Get origin from referrer or query params
+      const origin = request.headers.get('referer')?.includes('nss.') ? 'NSS' : 
+                    request.headers.get('referer')?.includes('hhovv.') ? 'HHOVV' :
+                    request.headers.get('referer')?.includes('devsandbox.') ? 'DevSandBox' : 
+                    'Unknown';
+      
+      // Call our internal webhook endpoint
+      fetch(new URL('/api/webhook/taskrouter', request.url).toString(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ticketId: ticket.id,
+          title: ticket.title,
+          description: ticket.description,
+          customerName: ticket.customerName,
+          customerPhone: ticket.customerPhone,
+          origin: origin
+        })
+      }).catch(err => {
+        console.error('Failed to trigger TaskRouter webhook:', err);
+        // Don't throw - ticket was created successfully
+      });
+    } catch (webhookError) {
+      console.error('Error triggering webhook:', webhookError);
+      // Don't throw - ticket was created successfully
+    }
+    
     return NextResponse.json(ticket, { status: 201 });
   } catch (error) {
     console.error('Error creating ticket:', error);

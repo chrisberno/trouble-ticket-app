@@ -117,6 +117,27 @@ https://your-app.vercel.app/?name={{task.customerName}}&phone={{task.customerPho
 - `GET /api/tickets` - List tickets (optional query params: name, phone)
 - `POST /api/tickets` - Create ticket
 - `PATCH /api/tickets/[id]` - Update ticket status
+- `POST /api/webhook/taskrouter` - Trigger TaskRouter task creation (internal use)
+
+## TaskRouter Integration (Optional)
+
+To automatically create Flex tasks when tickets are submitted:
+
+1. **Set up Studio Flow in RTC+Flex account** - See [STUDIO-FLOW-SETUP.md](./STUDIO-FLOW-SETUP.md)
+
+2. **Configure Environment Variables**
+   ```bash
+   # Add to .env.local
+   TWILIO_RTC_ACCOUNT_SID="AC6f01...c4a"  # RTC+Flex account only
+   TWILIO_RTC_AUTH_TOKEN="your_auth_token_here"
+   TWILIO_STUDIO_FLOW_WEBHOOK_URL="https://webhooks.twilio.com/v1/..."
+   ```
+
+3. **How it Works**
+   - When ticket is created, system calls Studio Flow webhook
+   - Studio Flow creates TaskRouter task with ticket details
+   - Task routes to RTC+Flex agents regardless of origin (NSS/HHOVV/DevSandBox)
+   - Agent sees ticket details in Flex task attributes
 
 ## Technology Stack
 
