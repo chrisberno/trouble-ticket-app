@@ -1,25 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateTicketStatus } from '@/lib/db';
+import { getTicketById, updateTicketStatus } from '@/lib/db';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const ticket = await getTicketById(params.id);
+    
+    if (!ticket) {
+      return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
+    }
+    
+    return NextResponse.json(ticket);
+  } catch (error) {
+    console.error('Error fetching ticket:', error);
+    return NextResponse.json({ error: 'Failed to fetch ticket' }, { status: 500 });
+  }
+}
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const resolvedParams = await params;
-    const id = parseInt(resolvedParams.id);
     const body = await request.json();
     const { status } = body;
     
-    if (!status || !['Open', 'In Progress', 'Closed'].includes(status)) {
-      return NextResponse.json(
-        { error: 'Invalid status' },
-        { status: 400 }
-      );
+    if (!status) {
+      return NextResponse.json({ error: 'Status is required' }, { status: 400 });
     }
     
-    await updateTicketStatus(id, status);
-    return NextResponse.json({ success: true });
+    const ticket = await updateTicketStatus(params.id, status);
+    
+    if (!ticket) {
+      return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
+    }
+    
+    return NextResponse.json(ticket);
   } catch (error) {
     console.error('Error updating ticket:', error);
     return NextResponse.json({ error: 'Failed to update ticket' }, { status: 500 });

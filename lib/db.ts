@@ -75,12 +75,22 @@ export const createTicket = async (ticket: Omit<Ticket, 'id' | 'createdAt' | 'up
   return result.rows[0] as Ticket;
 };
 
-export const updateTicketStatus = async (id: number, status: Ticket['status']): Promise<void> => {
+export const getTicketById = async (id: string): Promise<Ticket | null> => {
   await initDB();
   
-  await sql`
+  const result = await sql`SELECT * FROM tickets WHERE id = ${id}`;
+  return result.rows[0] as Ticket || null;
+};
+
+export const updateTicketStatus = async (id: string, status: Ticket['status']): Promise<Ticket | null> => {
+  await initDB();
+  
+  const result = await sql`
     UPDATE tickets 
     SET status = ${status}, updatedAt = CURRENT_TIMESTAMP 
     WHERE id = ${id}
+    RETURNING *
   `;
+  
+  return result.rows[0] as Ticket || null;
 };
