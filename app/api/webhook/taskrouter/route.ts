@@ -9,10 +9,9 @@ export async function POST(request: NextRequest) {
     // Get Twilio credentials from environment variables
     const TWILIO_ACCOUNT_SID = process.env.TWILIO_RTC_ACCOUNT_SID;
     const TWILIO_AUTH_TOKEN = process.env.TWILIO_RTC_AUTH_TOKEN;
-    const STUDIO_FLOW_URL = process.env.TWILIO_STUDIO_FLOW_WEBHOOK_URL;
     
-    if (!STUDIO_FLOW_URL) {
-      console.error('TWILIO_STUDIO_FLOW_WEBHOOK_URL not configured');
+    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
+      console.error('Twilio credentials not configured');
       // Don't fail the request - ticket was created successfully
       return NextResponse.json({ 
         success: true, 
@@ -33,22 +32,42 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString()
     };
     
-    // Call the Studio Flow webhook
-    const response = await fetch(STUDIO_FLOW_URL, {
+    // Call TaskRouter API directly (more reliable than Studio Flow)
+    const taskRouterUrl = `https://taskrouter.twilio.com/v1/Workspaces/WSfe43abb4378f0f1e2ebb98877c03bd1d/Tasks`;
+    const taskPayload = new URLSearchParams({
+      'WorkflowSid': 'WW2c597b1d5a96635b6cb0b6d261c9ede8',
+      'TaskChannel': 'default',
+      'Attributes': JSON.stringify({
+        type: 'support-ticket',
+        ticketId: ticketId,
+        title: title,
+        description: description,
+        customerName: customerName,
+        customerPhone: customerPhone,
+        origin: origin,
+        priority: priority,
+        timestamp: new Date().toISOString(),
+        channel: 'support-ticket'
+      })
+    });
+
+    const response = await fetch(taskRouterUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': 'Basic ' + Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString('base64')
       },
-      body: JSON.stringify(studioPayload)
+      body: taskPayload.toString()
     });
     
     if (!response.ok) {
-      console.error('Failed to trigger Studio Flow:', await response.text());
+      const errorText = await response.text();
+      console.error('Failed to create TaskRouter task:', errorText);
       // Don't fail the request - ticket was created successfully
       return NextResponse.json({ 
         success: true, 
-        warning: 'Failed to notify support team' 
+        warning: 'Failed to notify support team',
+        error: errorText
       });
     }
     
@@ -57,7 +76,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       taskCreated: true,
-      executionSid: result.sid
+      taskSid: result.sid,
+      taskStatus: result.assignment_status
     });
     
   } catch (error) {
