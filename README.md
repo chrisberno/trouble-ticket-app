@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Trouble Ticket System
 
-## Getting Started
+A standalone Next.js ticketing system with PostgreSQL persistence.
 
-First, run the development server:
+## Features
 
+- Create and manage support tickets
+- Customer search by name or phone
+- Status tracking (Open, In Progress, Closed)
+- Twilio Flex integration via query parameters
+- Responsive design with Tailwind CSS
+
+## Local Development
+
+### Prerequisites
+- Node.js 18+
+- npm/yarn/pnpm
+
+### Setup
+
+1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd trouble-ticket-app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Run the development server
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Open [http://localhost:3000](http://localhost:3000)
 
-## Learn More
+### Local Testing with Persistence
 
-To learn more about Next.js, take a look at the following resources:
+The system uses SQLite for local development (data persists between restarts):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# Build and test locally
+npm run build
+npm start
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Test ticket creation and retrieval
+# Data stored in local SQLite database
+```
 
-## Deploy on Vercel
+### Production Build Testing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+# Test production build locally
+npm run build
+npm run lint
+npm run typecheck  # if available
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Vercel Deployment
+
+### Database Setup
+
+When deploying to Vercel, you need to set up PostgreSQL:
+
+1. **Create Vercel Postgres Database**
+   - Go to your Vercel dashboard
+   - Navigate to Storage tab
+   - Create new PostgreSQL database
+   - Note the connection details
+
+2. **Environment Variables**
+   
+   Vercel automatically provides these when you connect the database:
+   ```
+   POSTGRES_URL
+   POSTGRES_PRISMA_URL
+   POSTGRES_URL_NO_SSL
+   POSTGRES_URL_NON_POOLING
+   POSTGRES_USER
+   POSTGRES_HOST
+   POSTGRES_PASSWORD
+   POSTGRES_DATABASE
+   ```
+
+3. **Deploy**
+   ```bash
+   # Connect to Vercel (if not already)
+   npx vercel login
+   
+   # Deploy
+   npx vercel --prod
+   ```
+
+4. **Database Initialization**
+   
+   The database table is created automatically on first API call via the `initDB()` function in `lib/db.ts`.
+
+### Integration with Twilio Flex
+
+The system accepts query parameters for Flex integration:
+
+- `?name=John+Doe` - Pre-fill customer name
+- `?phone=5551234567` - Pre-fill customer phone
+- `?name=John+Doe&phone=5551234567` - Pre-fill both
+
+Example Flex Enhanced CRM Container URL:
+```
+https://your-app.vercel.app/?name={{task.customerName}}&phone={{task.customerPhone}}
+```
+
+## API Endpoints
+
+- `GET /api/tickets` - List tickets (optional query params: name, phone)
+- `POST /api/tickets` - Create ticket
+- `PATCH /api/tickets/[id]` - Update ticket status
+
+## Technology Stack
+
+- Next.js 15 with App Router
+- TypeScript
+- Tailwind CSS
+- SQLite (local) / PostgreSQL (production)
+- @vercel/postgres

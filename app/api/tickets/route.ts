@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const name = searchParams.get('name');
     const phone = searchParams.get('phone');
     
-    const tickets = getTicketsByCustomer(name || undefined, phone || undefined);
+    const tickets = await getTicketsByCustomer(name || undefined, phone || undefined);
     return NextResponse.json(tickets);
   } catch (error) {
     console.error('Error fetching tickets:', error);
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const ticket = createTicket({
+    const ticket = await createTicket({
       title,
       description,
       customerName,

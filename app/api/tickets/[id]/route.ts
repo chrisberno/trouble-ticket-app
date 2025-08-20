@@ -18,7 +18,7 @@ export async function PATCH(
       );
     }
     
-    updateTicketStatus(id, status);
+    await updateTicketStatus(id, status);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error updating ticket:', error);

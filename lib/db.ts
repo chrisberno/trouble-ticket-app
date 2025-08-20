@@ -1,21 +1,24 @@
-import Database from 'better-sqlite3';
-import path from 'path';
+import { sql } from '@vercel/postgres';
 
-const db = new Database(path.join(process.cwd(), 'tickets.db'));
-
-// Create tickets table if it doesn't exist
-db.exec(`
-  CREATE TABLE IF NOT EXISTS tickets (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    customerName TEXT NOT NULL,
-    customerPhone TEXT NOT NULL,
-    status TEXT DEFAULT 'Open',
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
+// Initialize database table (runs on first query)
+async function initDB() {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS tickets (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        customerName TEXT NOT NULL,
+        customerPhone TEXT NOT NULL,
+        status TEXT DEFAULT 'Open',
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+  } catch (error) {
+    console.log('DB already initialized or error:', error);
+  }
+}
 
 export type Ticket = {
   id: number;
@@ -28,54 +31,54 @@ export type Ticket = {
   updatedAt?: string;
 };
 
-export const getAllTickets = (): Ticket[] => {
-  const stmt = db.prepare('SELECT * FROM tickets ORDER BY createdAt DESC');
-  return stmt.all() as Ticket[];
+export const getAllTickets = async (): Promise<Ticket[]> => {
+  await initDB();
+  const result = await sql`SELECT * FROM tickets ORDER BY createdAt DESC`;
+  return result.rows as Ticket[];
 };
 
-export const getTicketsByCustomer = (name?: string, phone?: string): Ticket[] => {
+export const getTicketsByCustomer = async (name?: string, phone?: string): Promise<Ticket[]> => {
+  await initDB();
+  
   if (!name && !phone) return getAllTickets();
   
   let query = 'SELECT * FROM tickets WHERE 1=1';
-  const params: Record<string, string> = {};
+  const params: string[] = [];
   
   if (name) {
-    query += ' AND customerName LIKE @name';
-    params.name = `%${name}%`;
+    query += ` AND customerName ILIKE $${params.length + 1}`;
+    params.push(`%${name}%`);
   }
   
   if (phone) {
-    query += ' AND customerPhone LIKE @phone';
-    params.phone = `%${phone}%`;
+    query += ` AND customerPhone ILIKE $${params.length + 1}`;
+    params.push(`%${phone}%`);
   }
   
   query += ' ORDER BY createdAt DESC';
   
-  const stmt = db.prepare(query);
-  return stmt.all(params) as Ticket[];
+  const result = await sql.query(query, params);
+  return result.rows as Ticket[];
 };
 
-export const createTicket = (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>): Ticket => {
-  const stmt = db.prepare(`
+export const createTicket = async (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>): Promise<Ticket> => {
+  await initDB();
+  
+  const result = await sql`
     INSERT INTO tickets (title, description, customerName, customerPhone, status)
-    VALUES (@title, @description, @customerName, @customerPhone, @status)
-  `);
+    VALUES (${ticket.title}, ${ticket.description}, ${ticket.customerName}, ${ticket.customerPhone}, ${ticket.status})
+    RETURNING *
+  `;
   
-  const result = stmt.run(ticket);
-  return {
-    ...ticket,
-    id: result.lastInsertRowid as number
-  };
+  return result.rows[0] as Ticket;
 };
 
-export const updateTicketStatus = (id: number, status: Ticket['status']): void => {
-  const stmt = db.prepare(`
+export const updateTicketStatus = async (id: number, status: Ticket['status']): Promise<void> => {
+  await initDB();
+  
+  await sql`
     UPDATE tickets 
-    SET status = @status, updatedAt = CURRENT_TIMESTAMP 
-    WHERE id = @id
-  `);
-  
-  stmt.run({ id, status });
+    SET status = ${status}, updatedAt = CURRENT_TIMESTAMP 
+    WHERE id = ${id}
+  `;
 };
-
-export default db;
