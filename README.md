@@ -65,10 +65,14 @@ npm run typecheck  # if available
 When deploying to Vercel, you need to set up PostgreSQL:
 
 1. **Create Vercel Postgres Database**
-   - Go to your Vercel dashboard
+   - Go to https://vercel.com/dashboard
+   - Find your deployed project
    - Navigate to Storage tab
-   - Create new PostgreSQL database
-   - Note the connection details
+   - Click "Create database"
+   - Choose **Neon** (Serverless Postgres)
+   - Select both Preview and Production
+   - **IMPORTANT**: Change Environment Variables Prefix from `STORAGE` to `POSTGRES`
+   - Click "Create & Connect"
 
 2. **Environment Variables**
    

@@ -3,6 +3,7 @@ import { sql } from '@vercel/postgres';
 // Initialize database table (runs on first query)
 async function initDB() {
   try {
+    console.log('Initializing database...');
     await sql`
       CREATE TABLE IF NOT EXISTS tickets (
         id SERIAL PRIMARY KEY,
@@ -15,8 +16,9 @@ async function initDB() {
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    console.log('Database initialized successfully');
   } catch (error) {
-    console.log('DB already initialized or error:', error);
+    console.error('Database initialization error:', error);
   }
 }
 
