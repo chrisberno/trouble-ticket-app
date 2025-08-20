@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 type Ticket = {
@@ -14,7 +14,7 @@ type Ticket = {
   updatedAt?: string;
 };
 
-export default function Home() {
+function TicketingSystem() {
   const searchParams = useSearchParams();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -203,5 +203,13 @@ export default function Home() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center">Loading...</div>}>
+      <TicketingSystem />
+    </Suspense>
   );
 }
