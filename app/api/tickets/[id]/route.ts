@@ -3,10 +3,11 @@ import { getTicketById, updateTicketStatus } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ticket = await getTicketById(params.id);
+    const { id } = await params;
+    const ticket = await getTicketById(id);
     
     if (!ticket) {
       return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
@@ -21,9 +22,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { status } = body;
     
@@ -31,7 +33,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Status is required' }, { status: 400 });
     }
     
-    const ticket = await updateTicketStatus(params.id, status);
+    const ticket = await updateTicketStatus(id, status);
     
     if (!ticket) {
       return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });

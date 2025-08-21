@@ -3,15 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
-interface TaskPageProps {
-  ticketId?: string;
-  customerName?: string;
-  customerPhone?: string;
-  origin?: string;
-  title?: string;
-  description?: string;
-  priority?: string;
-}
+// Remove unused interface - task props come from URL search params
 
 interface Ticket {
   id: string;
@@ -38,7 +30,6 @@ export default function TaskPage() {
   const customerPhone = searchParams.get('customerPhone');
   const origin = searchParams.get('origin');
   const title = searchParams.get('title');
-  const description = searchParams.get('description');
   const priority = searchParams.get('priority');
 
   useEffect(() => {
@@ -60,7 +51,7 @@ export default function TaskPage() {
       } else {
         setError('Ticket not found');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load ticket');
     } finally {
       setLoading(false);
@@ -86,7 +77,7 @@ export default function TaskPage() {
       } else {
         alert('Failed to update ticket status');
       }
-    } catch (err) {
+    } catch {
       alert('Error updating ticket status');
     }
   };
