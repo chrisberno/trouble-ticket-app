@@ -28,24 +28,44 @@ export async function POST(request: NextRequest) {
     
     // Call TaskRouter API directly (more reliable than Studio Flow)
     const taskRouterUrl = `https://taskrouter.twilio.com/v1/Workspaces/WSfe43abb4378f0f1e2ebb98877c03bd1d/Tasks`;
+    
+    // Create rich task attributes for better Flex display
+    const taskAttributes = {
+      // Primary display fields
+      name: `🎫 Support Ticket: ${title}`,
+      type: 'support_ticket',
+      skill: 'Support',  // Important for routing
+      
+      // Ticket information
+      ticketId: ticketId,
+      title: title,
+      description: description,
+      urgency: priority,
+      
+      // Customer information
+      customerName: customerName,
+      customerPhone: customerPhone,
+      customers: {
+        name: customerName,
+        phone: customerPhone,
+        organization: origin
+      },
+      
+      // Metadata
+      origin: origin,
+      timestamp: new Date().toISOString(),
+      channel: 'support-ticket',
+      channelType: 'support',
+      conversationsTaskKey: `support_ticket_${ticketId}`
+    };
+    
     const taskPayload = new URLSearchParams({
       'WorkflowSid': 'WW2c597b1d5a96635b6cb0b6d261c9ede8',
-      'TaskChannel': 'default',
-      'Attributes': JSON.stringify({
-        // Key attribute for Flex task display (per Twilio Support)
-        name: customerName,
-        type: 'Support Ticket',
-        priority: priority,
-        // Additional ticket details
-        ticketId: ticketId,
-        title: title,
-        description: description,
-        customerName: customerName,
-        customerPhone: customerPhone,
-        origin: origin,
-        timestamp: new Date().toISOString(),
-        channel: 'support-ticket'
-      })
+      'TaskChannel': 'TC06211f3eecf84e743248fc3c6c6933a4',  // ConnieCare Team email channel (same as bug-tracker)
+      'FriendlyName': `🎫 Support Ticket: ${title}`,  // This shows in the task list!
+      'Priority': priority === 'high' ? '0' : priority === 'medium' ? '5' : '10',  // Numeric priority
+      'Timeout': '3600',  // 1 hour timeout
+      'Attributes': JSON.stringify(taskAttributes)
     });
 
     const response = await fetch(taskRouterUrl, {
