@@ -9,7 +9,7 @@ const corsOptions = {
   'Access-Control-Allow-Credentials': 'true'
 };
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new Response(null, {
     status: 200,
     headers: corsOptions,
