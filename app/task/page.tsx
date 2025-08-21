@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 
 // Remove unused interface - task props come from URL search params
 
@@ -16,7 +16,7 @@ interface Ticket {
   updatedAt: string;
 }
 
-export default function TaskPage() {
+function TaskPageContent() {
   const searchParams = useSearchParams();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
@@ -212,5 +212,20 @@ export default function TaskPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TaskPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <TaskPageContent />
+    </Suspense>
   );
 }
