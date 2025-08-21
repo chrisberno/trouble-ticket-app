@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     
     const taskPayload = new URLSearchParams({
       'WorkflowSid': 'WW2c597b1d5a96635b6cb0b6d261c9ede8',
-      'TaskChannel': 'TC06211f3eecf84e743248fc3c6c6933a4',  // ConnieCare Team email channel (same as bug-tracker)
+      'TaskChannel': 'default',
       'FriendlyName': `🎫 Support Ticket: ${title}`,  // This shows in the task list!
       'Priority': priority === 'high' ? '0' : priority === 'medium' ? '5' : '10',  // Numeric priority
       'Timeout': '3600',  // 1 hour timeout
