@@ -10,6 +10,10 @@ export async function POST(request: NextRequest) {
     const TWILIO_ACCOUNT_SID = process.env.TWILIO_RTC_ACCOUNT_SID;
     const TWILIO_AUTH_TOKEN = process.env.TWILIO_RTC_AUTH_TOKEN;
     
+    // Debug logging (without exposing full credentials)
+    console.log('TWILIO_ACCOUNT_SID:', TWILIO_ACCOUNT_SID ? `${TWILIO_ACCOUNT_SID.substring(0, 10)}...` : 'undefined');
+    console.log('TWILIO_AUTH_TOKEN:', TWILIO_AUTH_TOKEN ? `${TWILIO_AUTH_TOKEN.substring(0, 8)}...` : 'undefined');
+    
     if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
       console.error('Twilio credentials not configured');
       // Don't fail the request - ticket was created successfully
@@ -28,14 +32,17 @@ export async function POST(request: NextRequest) {
       'WorkflowSid': 'WW2c597b1d5a96635b6cb0b6d261c9ede8',
       'TaskChannel': 'default',
       'Attributes': JSON.stringify({
-        type: 'support-ticket',
+        // Key attribute for Flex task display (per Twilio Support)
+        name: customerName,
+        type: 'Support Ticket',
+        priority: priority,
+        // Additional ticket details
         ticketId: ticketId,
         title: title,
         description: description,
         customerName: customerName,
         customerPhone: customerPhone,
         origin: origin,
-        priority: priority,
         timestamp: new Date().toISOString(),
         channel: 'support-ticket'
       })
