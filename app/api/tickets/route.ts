@@ -15,7 +15,7 @@ export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
   const dynamicCorsOptions = {
     ...corsOptions,
-    'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? origin : 'https://connie.plus'
+    'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? (origin || 'https://connie.plus') : 'https://connie.plus'
   };
   
   return new Response(null, {
@@ -25,16 +25,16 @@ export async function OPTIONS(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  const dynamicCorsOptions = {
+    ...corsOptions,
+    'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? (origin || 'https://connie.plus') : 'https://connie.plus'
+  };
+
   try {
     const { searchParams } = new URL(request.url);
     const name = searchParams.get('name');
     const phone = searchParams.get('phone');
-    
-    const origin = request.headers.get('origin');
-    const dynamicCorsOptions = {
-      ...corsOptions,
-      'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? origin : 'https://connie.plus'
-    };
     
     const tickets = await getTicketsByCustomer(name || undefined, phone || undefined);
     return NextResponse.json(tickets, { headers: dynamicCorsOptions });
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     const origin = request.headers.get('origin');
     const dynamicCorsOptions = {
       ...corsOptions,
-      'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? origin : 'https://connie.plus'
+      'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? (origin || 'https://connie.plus') : 'https://connie.plus'
     };
 
     return NextResponse.json(ticket, { 
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     const origin = request.headers.get('origin');
     const dynamicCorsOptions = {
       ...corsOptions,
-      'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? origin : 'https://connie.plus'
+      'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? (origin || 'https://connie.plus') : 'https://connie.plus'
     };
     
     return NextResponse.json({ error: 'Failed to create ticket' }, { 
