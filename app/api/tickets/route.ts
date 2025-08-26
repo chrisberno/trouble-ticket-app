@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       // Get origin from referrer or query params
       const origin = request.headers.get('referer')?.includes('nss.') ? 'NSS' : 
                     request.headers.get('referer')?.includes('hhovv.') ? 'HHOVV' :
-                    request.headers.get('referer')?.includes('devsandbox.') ? 'DevSandBox' : 
+                    request.headers.get('referer')?.includes('dev.') ? 'DevSandBox' : 
                     'Unknown';
       
       // Call our internal webhook endpoint
