@@ -1,18 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTicketsByCustomer, createTicket } from '@/lib/db';
 
-// CORS configuration
+// CORS configuration - allow localhost for development testing
+const allowedOrigins = ['https://connie.plus', 'http://localhost:3000'];
+
 const corsOptions = {
-  'Access-Control-Allow-Origin': 'https://connie.plus',
+  'Access-Control-Allow-Origin': 'https://connie.plus', // Will be set dynamically below
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
   'Access-Control-Allow-Credentials': 'true'
 };
 
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  const dynamicCorsOptions = {
+    ...corsOptions,
+    'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? origin : 'https://connie.plus'
+  };
+  
   return new Response(null, {
     status: 200,
-    headers: corsOptions,
+    headers: dynamicCorsOptions,
   });
 }
 
@@ -22,13 +30,19 @@ export async function GET(request: NextRequest) {
     const name = searchParams.get('name');
     const phone = searchParams.get('phone');
     
+    const origin = request.headers.get('origin');
+    const dynamicCorsOptions = {
+      ...corsOptions,
+      'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? origin : 'https://connie.plus'
+    };
+    
     const tickets = await getTicketsByCustomer(name || undefined, phone || undefined);
-    return NextResponse.json(tickets, { headers: corsOptions });
+    return NextResponse.json(tickets, { headers: dynamicCorsOptions });
   } catch (error) {
     console.error('Error fetching tickets:', error);
     return NextResponse.json({ error: 'Failed to fetch tickets' }, { 
       status: 500,
-      headers: corsOptions 
+      headers: dynamicCorsOptions 
     });
   }
 }
@@ -84,15 +98,27 @@ export async function POST(request: NextRequest) {
       // Don't throw - ticket was created successfully
     }
     
+    const origin = request.headers.get('origin');
+    const dynamicCorsOptions = {
+      ...corsOptions,
+      'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? origin : 'https://connie.plus'
+    };
+
     return NextResponse.json(ticket, { 
       status: 201,
-      headers: corsOptions 
+      headers: dynamicCorsOptions 
     });
   } catch (error) {
     console.error('Error creating ticket:', error);
+    const origin = request.headers.get('origin');
+    const dynamicCorsOptions = {
+      ...corsOptions,
+      'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? origin : 'https://connie.plus'
+    };
+    
     return NextResponse.json({ error: 'Failed to create ticket' }, { 
       status: 500,
-      headers: corsOptions 
+      headers: dynamicCorsOptions 
     });
   }
 }
