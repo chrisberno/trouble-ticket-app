@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const taskPayload = new URLSearchParams({
       'WorkflowSid': 'WW2c597b1d5a96635b6cb0b6d261c9ede8',
       'TaskChannel': 'default',
-      'FriendlyName': `🎫 Support Ticket: ${title}`,  // This shows in the task list!
+      'FriendlyName': `🎫 Support Ticket: ${title.replace(/[^\w\s-]/g, '')}`,  // Remove special chars that break encoding
       'Priority': priority === 'high' ? '0' : priority === 'medium' ? '5' : '10',  // Numeric priority
       'Timeout': '3600',  // 1 hour timeout
       'Attributes': JSON.stringify(taskAttributes)
