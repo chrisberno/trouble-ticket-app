@@ -35,13 +35,21 @@ function TicketingSystem() {
       
       const response = await fetch(`/api/tickets?${params}`);
       const data = await response.json();
-      setTickets(data);
+      
+      // Ensure data is an array before setting tickets
+      if (Array.isArray(data)) {
+        setTickets(data);
+      } else {
+        console.error('API returned non-array data:', data);
+        setTickets([]);
+      }
       
       // Update form fields with URL params
       setCustomerName(name || "");
       setCustomerPhone(phone || "");
     } catch (error) {
       console.error('Error fetching tickets:', error);
+      setTickets([]);
     } finally {
       setLoading(false);
     }

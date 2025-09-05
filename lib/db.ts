@@ -12,6 +12,7 @@ async function initDB() {
         customerName TEXT NOT NULL,
         customerPhone TEXT NOT NULL,
         status TEXT DEFAULT 'Open',
+        notes TEXT DEFAULT '',
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -29,6 +30,7 @@ export type Ticket = {
   customerName: string;
   customerPhone: string;
   status: 'Open' | 'In Progress' | 'Closed';
+  notes?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -88,6 +90,19 @@ export const updateTicketStatus = async (id: string, status: Ticket['status']): 
   const result = await sql`
     UPDATE tickets 
     SET status = ${status}, updatedAt = CURRENT_TIMESTAMP 
+    WHERE id = ${id}
+    RETURNING *
+  `;
+  
+  return result.rows[0] as Ticket || null;
+};
+
+export const updateTicketNotes = async (id: string, notes: string): Promise<Ticket | null> => {
+  await initDB();
+  
+  const result = await sql`
+    UPDATE tickets 
+    SET notes = ${notes}, updatedAt = CURRENT_TIMESTAMP 
     WHERE id = ${id}
     RETURNING *
   `;

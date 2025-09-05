@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTicketById, updateTicketStatus } from '@/lib/db';
+import { getTicketById, updateTicketStatus, updateTicketNotes } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
@@ -27,13 +27,21 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { status } = body;
+    const { status, notes } = body;
     
-    if (!status) {
-      return NextResponse.json({ error: 'Status is required' }, { status: 400 });
+    let ticket;
+    
+    if (status && notes !== undefined) {
+      return NextResponse.json({ error: 'Cannot update status and notes in the same request' }, { status: 400 });
     }
     
-    const ticket = await updateTicketStatus(id, status);
+    if (status) {
+      ticket = await updateTicketStatus(id, status);
+    } else if (notes !== undefined) {
+      ticket = await updateTicketNotes(id, notes);
+    } else {
+      return NextResponse.json({ error: 'Either status or notes is required' }, { status: 400 });
+    }
     
     if (!ticket) {
       return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });

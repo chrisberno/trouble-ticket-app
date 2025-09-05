@@ -23,6 +23,7 @@ function TaskPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [newStatus, setNewStatus] = useState('');
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
 
   // Get parameters from URL
   const ticketId = searchParams.get('ticketId');
@@ -48,6 +49,7 @@ function TaskPageContent() {
         const ticketData = await response.json();
         setTicket(ticketData);
         setNewStatus(ticketData.status);
+        setReplyText(ticketData.notes || '');
       } else {
         setError('Ticket not found');
       }
@@ -79,6 +81,33 @@ function TaskPageContent() {
       }
     } catch {
       alert('Error updating ticket status');
+    }
+  };
+
+  const saveNotes = async () => {
+    if (!ticket) return;
+
+    setIsSavingNotes(true);
+    try {
+      const response = await fetch(`/api/tickets/${ticket.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ notes: replyText }),
+      });
+
+      if (response.ok) {
+        const updatedTicket = await response.json();
+        setTicket(updatedTicket);
+        alert('Internal notes saved successfully');
+      } else {
+        alert('Failed to save notes');
+      }
+    } catch {
+      alert('Error saving notes');
+    } finally {
+      setIsSavingNotes(false);
     }
   };
 
@@ -200,13 +229,11 @@ function TaskPageContent() {
               rows={4}
             />
             <button
-              onClick={() => {
-                // TODO: Implement reply functionality
-                alert('Reply functionality coming soon!');
-              }}
-              className="mt-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+              onClick={saveNotes}
+              disabled={isSavingNotes}
+              className="mt-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              Add Note
+              {isSavingNotes ? 'Saving...' : 'Add Note'}
             </button>
           </div>
         </div>
