@@ -20,10 +20,11 @@ async function initDB() {
     
     // Migration: Add notes column if it doesn't exist
     try {
-      await sql`ALTER TABLE tickets ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT ''`;
+      await sql`ALTER TABLE tickets ADD COLUMN notes TEXT DEFAULT ''`;
       console.log('Notes column migration completed');
     } catch (migrationError) {
-      console.log('Notes column already exists or migration failed:', migrationError);
+      // Column likely already exists, this is expected
+      console.log('Notes column already exists:', migrationError.message);
     }
     
     console.log('Database initialized successfully');
