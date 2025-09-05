@@ -12,6 +12,20 @@ type Ticket = {
   status: "Open" | "In Progress" | "Closed";
   createdAt?: string;
   updatedAt?: string;
+  notes?: string;
+};
+
+// API response uses lowercase field names
+type TicketApiResponse = {
+  id: number;
+  title: string;
+  description: string;
+  customername: string;
+  customerphone: string;
+  status: "Open" | "In Progress" | "Closed";
+  createdat?: string;
+  updatedat?: string;
+  notes?: string;
 };
 
 function TicketingSystem() {
@@ -22,6 +36,9 @@ function TicketingSystem() {
   const [description, setDescription] = useState("");
   const [customerName, setCustomerName] = useState(searchParams.get("name") || "");
   const [customerPhone, setCustomerPhone] = useState(searchParams.get("phone") || "");
+  const [ticketIdLookup, setTicketIdLookup] = useState("");
+  const [lookupResult, setLookupResult] = useState<TicketApiResponse | null>(null);
+  const [lookupLoading, setLookupLoading] = useState(false);
 
   // Fetch tickets from API
   const fetchTickets = useCallback(async () => {
@@ -100,12 +117,106 @@ function TicketingSystem() {
     }
   };
 
+  const lookupTicketById = async () => {
+    if (!ticketIdLookup.trim()) return;
+    
+    setLookupLoading(true);
+    try {
+      const response = await fetch(`/api/tickets/${ticketIdLookup.trim()}`);
+      if (response.ok) {
+        const ticket = await response.json();
+        setLookupResult(ticket);
+      } else {
+        setLookupResult(null);
+        alert(`Ticket #${ticketIdLookup} not found`);
+      }
+    } catch (error) {
+      console.error('Error looking up ticket:', error);
+      setLookupResult(null);
+      alert('Error looking up ticket');
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm mb-6 p-6">
         <h1 className="text-3xl font-bold text-gray-800">Support Tickets</h1>
         <p className="text-gray-600 mt-1">Manage customer support requests</p>
+      </div>
+      
+      {/* Quick Ticket Lookup */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm mb-6 p-6 border border-blue-100">
+        <h2 className="text-xl font-semibold mb-3 text-gray-800 flex items-center">
+          <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          Quick Ticket Lookup
+        </h2>
+        <p className="text-gray-600 mb-4">Have a ticket number? Get instant status updates!</p>
+        
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Enter ticket number (e.g., 49)"
+              value={ticketIdLookup}
+              onChange={(e) => setTicketIdLookup(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && lookupTicketById()}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400"
+            />
+          </div>
+          <button 
+            onClick={lookupTicketById}
+            disabled={lookupLoading || !ticketIdLookup.trim()}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium px-6 py-3 rounded-lg transition-colors flex items-center"
+          >
+            {lookupLoading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Searching...
+              </>
+            ) : (
+              'Track Ticket'
+            )}
+          </button>
+        </div>
+
+        {/* Lookup Result */}
+        {lookupResult && (
+          <div className="mt-4 bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+            <div className="flex justify-between items-start mb-3">
+              <h3 className="font-semibold text-lg text-gray-800">#{lookupResult.id} - {lookupResult.title}</h3>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                lookupResult.status === "Open" 
+                  ? "bg-green-100 text-green-800 border border-green-200"
+                  : lookupResult.status === "In Progress"
+                  ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                  : "bg-gray-100 text-gray-800 border border-gray-200"
+              }`}>
+                {lookupResult.status}
+              </span>
+            </div>
+            <p className="text-gray-600 mb-2">{lookupResult.description}</p>
+            <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
+              <div><strong>Customer:</strong> {lookupResult.customername}</div>
+              <div><strong>Contact:</strong> {lookupResult.customerphone}</div>
+              <div><strong>Created:</strong> {lookupResult.createdat ? new Date(lookupResult.createdat).toLocaleDateString() : 'N/A'}</div>
+              <div><strong>Updated:</strong> {lookupResult.updatedat ? new Date(lookupResult.updatedat).toLocaleDateString() : 'N/A'}</div>
+            </div>
+            {lookupResult.notes && (
+              <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                <strong className="text-gray-700">Internal Notes:</strong>
+                <p className="text-gray-600 mt-1">{lookupResult.notes}</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       {/* Create Ticket Form */}

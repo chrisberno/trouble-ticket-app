@@ -24,7 +24,7 @@ async function initDB() {
       console.log('Notes column migration completed');
     } catch (migrationError) {
       // Column likely already exists, this is expected
-      console.log('Notes column already exists:', migrationError.message);
+      console.log('Notes column already exists:', migrationError instanceof Error ? migrationError.message : migrationError);
     }
     
     console.log('Database initialized successfully');
