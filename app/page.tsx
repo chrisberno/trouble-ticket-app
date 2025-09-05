@@ -39,6 +39,9 @@ function TicketingSystem() {
   const [ticketIdLookup, setTicketIdLookup] = useState("");
   const [lookupResult, setLookupResult] = useState<TicketApiResponse | null>(null);
   const [lookupLoading, setLookupLoading] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   // Fetch tickets from API
   const fetchTickets = useCallback(async () => {
@@ -117,27 +120,53 @@ function TicketingSystem() {
     }
   };
 
-  const lookupTicketById = async () => {
-    if (!ticketIdLookup.trim()) return;
+  const lookupTicketById = useCallback(async (isAutoRefresh = false) => {
+    const ticketId = ticketIdLookup.trim();
+    if (!ticketId) return;
     
-    setLookupLoading(true);
+    if (isAutoRefresh) {
+      setIsRefreshing(true);
+    } else {
+      setLookupLoading(true);
+    }
+    
     try {
-      const response = await fetch(`/api/tickets/${ticketIdLookup.trim()}`);
+      const response = await fetch(`/api/tickets/${ticketId}`);
       if (response.ok) {
         const ticket = await response.json();
         setLookupResult(ticket);
+        setLastRefresh(new Date());
       } else {
-        setLookupResult(null);
-        alert(`Ticket #${ticketIdLookup} not found`);
+        if (!isAutoRefresh) {
+          setLookupResult(null);
+          alert(`Ticket #${ticketId} not found`);
+        }
       }
     } catch (error) {
       console.error('Error looking up ticket:', error);
-      setLookupResult(null);
-      alert('Error looking up ticket');
+      if (!isAutoRefresh) {
+        setLookupResult(null);
+        alert('Error looking up ticket');
+      }
     } finally {
-      setLookupLoading(false);
+      if (isAutoRefresh) {
+        setIsRefreshing(false);
+      } else {
+        setLookupLoading(false);
+      }
     }
-  };
+  }, [ticketIdLookup]);
+
+  // Auto-refresh for ticket lookup
+  useEffect(() => {
+    if (lookupResult && autoRefresh && ticketIdLookup) {
+      const interval = setInterval(() => {
+        lookupTicketById(true);
+      }, 30000); // Refresh every 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [lookupResult, autoRefresh, ticketIdLookup, lookupTicketById]);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -169,7 +198,7 @@ function TicketingSystem() {
             />
           </div>
           <button 
-            onClick={lookupTicketById}
+            onClick={() => lookupTicketById()}
             disabled={lookupLoading || !ticketIdLookup.trim()}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium px-6 py-3 rounded-lg transition-colors flex items-center"
           >
@@ -201,6 +230,40 @@ function TicketingSystem() {
               }`}>
                 {lookupResult.status}
               </span>
+            </div>
+            
+            {/* Auto-refresh controls */}
+            <div className="flex justify-between items-center mb-3 p-2 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <label className="flex items-center space-x-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={autoRefresh}
+                      onChange={(e) => setAutoRefresh(e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-600">Auto-refresh (30s)</span>
+                  </label>
+                </div>
+                
+                <button
+                  onClick={() => lookupTicketById(true)}
+                  disabled={isRefreshing}
+                  className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400"
+                >
+                  <svg className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>{isRefreshing ? 'Refreshing...' : 'Refresh Now'}</span>
+                </button>
+              </div>
+              
+              {lastRefresh && (
+                <div className="text-xs text-gray-500">
+                  Last updated: {lastRefresh.toLocaleTimeString()}
+                </div>
+              )}
             </div>
             <p className="text-gray-600 mb-2">{lookupResult.description}</p>
             <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
