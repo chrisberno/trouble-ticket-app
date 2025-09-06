@@ -10,14 +10,45 @@ export async function GET(
     const ticket = await getTicketById(id);
     
     if (!ticket) {
-      return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Ticket not found' }, { 
+        status: 404,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      });
     }
     
-    return NextResponse.json(ticket);
+    return NextResponse.json(ticket, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    });
   } catch (error) {
     console.error('Error fetching ticket:', error);
-    return NextResponse.json({ error: 'Failed to fetch ticket' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch ticket' }, { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    });
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 }
 
 export async function PATCH(
@@ -32,7 +63,14 @@ export async function PATCH(
     let ticket;
     
     if (status && notes !== undefined) {
-      return NextResponse.json({ error: 'Cannot update status and notes in the same request' }, { status: 400 });
+      return NextResponse.json({ error: 'Cannot update status and notes in the same request' }, { 
+        status: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      });
     }
     
     if (status) {
@@ -40,16 +78,43 @@ export async function PATCH(
     } else if (notes !== undefined) {
       ticket = await updateTicketNotes(id, notes);
     } else {
-      return NextResponse.json({ error: 'Either status or notes is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Either status or notes is required' }, { 
+        status: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      });
     }
     
     if (!ticket) {
-      return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Ticket not found' }, { 
+        status: 404,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      });
     }
     
-    return NextResponse.json(ticket);
+    return NextResponse.json(ticket, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    });
   } catch (error) {
     console.error('Error updating ticket:', error);
-    return NextResponse.json({ error: 'Failed to update ticket' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update ticket' }, { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    });
   }
 }
